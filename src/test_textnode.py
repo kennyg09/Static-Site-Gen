@@ -2,6 +2,7 @@ import unittest
 
 from textnode import *
 from main import *
+from splits import *
 
 
 class TestTextNode(unittest.TestCase):

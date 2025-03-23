@@ -1,5 +1,6 @@
 from textnode import *
 from htmlnode import *
+from splits import *
 
 def text_node_to_html_node(text_node):
     if not isinstance(text_node, TextNode):
