@@ -1,1 +1,21 @@
+# Generated files
+public/
 __pycache__/
+*.pyc
+
+# Environment files
+.env
+.venv
+env/
+venv/
+ENV/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
