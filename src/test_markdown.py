@@ -193,3 +193,28 @@ the **same** even with inline stuff
             html,
             "<div><pre><code>This is text that _should_ remain\nthe **same** even with inline stuff\n</code></pre></div>",
         )
+
+    def test_extract_title(self):
+        markdown = """# My Title
+
+Some content here"""
+        self.assertEqual(extract_title(markdown), "My Title")
+
+    def test_extract_title_no_h1(self):
+        markdown = """## Not an h1
+
+Some content here"""
+        with self.assertRaises(ValueError):
+            extract_title(markdown)
+
+    def test_extract_title_multiple_h1(self):
+        markdown = """# First Title
+
+Some content
+
+# Second Title"""
+        self.assertEqual(extract_title(markdown), "First Title")
+
+    def test_extract_title_with_whitespace(self):
+        markdown = """#   My Title  \n\nSome content"""
+        self.assertEqual(extract_title(markdown), "My Title")

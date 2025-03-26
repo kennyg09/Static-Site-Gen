@@ -221,3 +221,13 @@ def markdown_to_html_node(markdown):
     for block in blocks:
         children.append(block_to_html_node(block))
     return ParentNode("div", children)
+
+def extract_title(markdown: str) -> str:
+    """Extract the h1 header from markdown content."""
+    blocks = markdown_to_blocks(markdown)
+    
+    for block in blocks:
+        if block.startswith("# "):
+            return block[2:].strip()
+    
+    raise ValueError("No h1 header found in markdown content")

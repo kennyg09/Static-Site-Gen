@@ -63,12 +63,15 @@ def generate_page(from_path: str, template_path: str, dest_path: str) -> None:
     # Convert markdown to HTML
     html_content = markdown_to_html_node(markdown_content).to_html()
     
-    # Replace title placeholder with filename (without extension)
-    title = os.path.splitext(os.path.basename(from_path))[0].title()
-    html = template.replace("{{ Title }}", title)
+    # Extract title from markdown
+    title = extract_title(markdown_content)
     
-    # Replace content placeholder
+    # Replace placeholders
+    html = template.replace("{{ Title }}", title)
     html = html.replace("{{ Content }}", html_content)
+    
+    # Create destination directory if it doesn't exist
+    os.makedirs(os.path.dirname(dest_path), exist_ok=True)
     
     # Write the generated HTML
     with open(dest_path, "w") as f:
