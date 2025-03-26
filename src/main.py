@@ -27,21 +27,14 @@ def text_node_to_html_node(text_node):
         raise ValueError(f"Invalid TextType: {text_node.text_type}")
 
 def copy_static_files(source_dir: str, dest_dir: str) -> None:
-    """Recursively copy files from source_dir to dest_dir, logging each file path."""
-    # Create destination directory if it doesn't exist
     os.makedirs(dest_dir, exist_ok=True)
     
-    # Walk through source directory
     for root, dirs, files in os.walk(source_dir):
-        # Get the relative path from source_dir
         rel_path = os.path.relpath(root, source_dir)
-        # Create corresponding directory in destination
         dest_path = os.path.join(dest_dir, rel_path)
         
-        # Create destination directory if it doesn't exist
         os.makedirs(dest_path, exist_ok=True)
         
-        # Copy each file
         for file in files:
             source_file = os.path.join(root, file)
             dest_file = os.path.join(dest_path, file)
@@ -49,52 +42,37 @@ def copy_static_files(source_dir: str, dest_dir: str) -> None:
             logging.info(f"Copied: {source_file} -> {dest_file}")
 
 def generate_page(from_path: str, template_path: str, dest_path: str) -> None:
-    """Generate a single HTML page from a markdown file using a template."""
     logging.info(f"Generating page from {from_path} to {dest_path}")
     
-    # Read markdown content
     with open(from_path, "r") as f:
         markdown_content = f.read()
     
-    # Read template
     with open(template_path, "r") as f:
         template = f.read()
     
-    # Convert markdown to HTML
     html_content = markdown_to_html_node(markdown_content).to_html()
     
-    # Extract title from markdown
     title = extract_title(markdown_content)
     
-    # Replace placeholders
     html = template.replace("{{ Title }}", title)
     html = html.replace("{{ Content }}", html_content)
     
-    # Create destination directory if it doesn't exist
     os.makedirs(os.path.dirname(dest_path), exist_ok=True)
     
-    # Write the generated HTML
     with open(dest_path, "w") as f:
         f.write(html)
     
     logging.info(f"Generated {dest_path}")
 
-def generate_pages(from_dir: str, template_path: str, dest_dir: str) -> None:
-    """Generate HTML pages from all markdown files in from_dir using template_path."""
-    # Create destination directory if it doesn't exist
-    os.makedirs(dest_dir, exist_ok=True)
+def generate_pages_recursive(dir_path_content: str, template_path: str, dest_dir_path: str) -> None:
+    os.makedirs(dest_dir_path, exist_ok=True)
     
-    # Walk through source directory
-    for root, dirs, files in os.walk(from_dir):
-        # Get the relative path from from_dir
-        rel_path = os.path.relpath(root, from_dir)
-        # Create corresponding directory in destination
-        dest_path = os.path.join(dest_dir, rel_path)
+    for root, dirs, files in os.walk(dir_path_content):
+        rel_path = os.path.relpath(root, dir_path_content)
+        dest_path = os.path.join(dest_dir_path, rel_path)
         
-        # Create destination directory if it doesn't exist
         os.makedirs(dest_path, exist_ok=True)
         
-        # Process each markdown file
         for file in files:
             if file.endswith(".md"):
                 from_path = os.path.join(root, file)
@@ -103,19 +81,15 @@ def generate_pages(from_dir: str, template_path: str, dest_dir: str) -> None:
                 generate_page(from_path, template_path, dest_file_path)
 
 def main():
-    # Set up logging
     logging.basicConfig(level=logging.INFO)
     
-    # Delete public directory if it exists
     if os.path.exists("public"):
         shutil.rmtree("public")
         logging.info("Deleted existing public directory")
     
-    # Copy static files
     copy_static_files("static", "public")
     
-    # Generate pages
-    generate_pages("content", "template.html", "public")
+    generate_pages_recursive("content", "template.html", "public")
 
 if __name__ == "__main__":
     main()
