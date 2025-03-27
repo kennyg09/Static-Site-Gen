@@ -6,6 +6,7 @@ import os
 import shutil
 import logging
 from pathlib import Path
+import sys
 
 def text_node_to_html_node(text_node):
     if not isinstance(text_node, TextNode):
@@ -41,30 +42,32 @@ def copy_static_files(source_dir: str, dest_dir: str) -> None:
             shutil.copy2(source_file, dest_file)
             logging.info(f"Copied: {source_file} -> {dest_file}")
 
-def generate_page(from_path: str, template_path: str, dest_path: str) -> None:
-    logging.info(f"Generating page from {from_path} to {dest_path}")
+def generate_page(from_path: str, template_path: str, dest_path: str, basepath: str) -> None:
+    logging.info(f"Generating page from {from_path} to {dest_path} using {template_path}")
     
-    with open(from_path, "r") as f:
-        markdown_content = f.read()
+    with open(from_path, "r") as file:
+        file_content = file.read()
     
-    with open(template_path, "r") as f:
-        template = f.read()
+    with open(template_path, "r") as file:
+        template = file.read()
     
-    html_content = markdown_to_html_node(markdown_content).to_html()
+    title = extract_title(file_content)
+    content = markdown_to_html_node(file_content).to_html()
     
-    title = extract_title(markdown_content)
+    template = template.replace("{{ Title }}", title)
+    template = template.replace("{{ Content }}", content)
+    template = template.replace('href="/', f'href="{basepath}')
+    template = template.replace('src="/', f'src="{basepath}')
     
-    html = template.replace("{{ Title }}", title)
-    html = html.replace("{{ Content }}", html_content)
+    dest_dir_path = os.path.dirname(dest_path)
+    os.makedirs(dest_dir_path, exist_ok=True)
     
-    os.makedirs(os.path.dirname(dest_path), exist_ok=True)
-    
-    with open(dest_path, "w") as f:
-        f.write(html)
+    with open(dest_path, "w") as file:
+        file.write(template)
     
     logging.info(f"Generated {dest_path}")
 
-def generate_pages_recursive(dir_path_content: str, template_path: str, dest_dir_path: str) -> None:
+def generate_pages_recursive(dir_path_content: str, template_path: str, dest_dir_path: str, basepath: str) -> None:
     os.makedirs(dest_dir_path, exist_ok=True)
     
     for root, dirs, files in os.walk(dir_path_content):
@@ -78,18 +81,24 @@ def generate_pages_recursive(dir_path_content: str, template_path: str, dest_dir
                 from_path = os.path.join(root, file)
                 dest_file = os.path.splitext(file)[0] + ".html"
                 dest_file_path = os.path.join(dest_path, dest_file)
-                generate_page(from_path, template_path, dest_file_path)
+                generate_page(from_path, template_path, dest_file_path, basepath)
 
 def main():
-    logging.basicConfig(level=logging.INFO)
-    
+    if len(sys.argv) > 1:
+        basepath = sys.argv[1]
+    else:
+        basepath = "/"
+
     if os.path.exists("public"):
         shutil.rmtree("public")
-        logging.info("Deleted existing public directory")
-    
+    if os.path.exists("docs"):
+        shutil.rmtree("docs")
+    os.makedirs("public")
+    os.makedirs("docs")
     copy_static_files("static", "public")
-    
-    generate_pages_recursive("content", "template.html", "public")
+    copy_static_files("static", "docs")
+    generate_pages_recursive("content", "template.html", "public", basepath)
+    generate_pages_recursive("content", "template.html", "docs", basepath)
 
 if __name__ == "__main__":
     main()

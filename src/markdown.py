@@ -121,11 +121,18 @@ def split_nodes_link(old_nodes):
 
 def text_to_textnodes(text):
     nodes = [TextNode(text, TextType.TEXT)]
-    nodes = split_nodes_delimiter(nodes, "**", "**", TextType.BOLD)
-    nodes = split_nodes_delimiter(nodes, "_", "_", TextType.ITALIC)
-    nodes = split_nodes_delimiter(nodes, "`", "`", TextType.CODE)
-    nodes = split_nodes_image(nodes)
-    nodes = split_nodes_link(nodes)
+    
+    while True:
+        old_nodes = nodes.copy()
+        nodes = split_nodes_delimiter(nodes, "**", "**", TextType.BOLD)
+        nodes = split_nodes_delimiter(nodes, "_", "_", TextType.ITALIC)
+        nodes = split_nodes_delimiter(nodes, "`", "`", TextType.CODE)
+        nodes = split_nodes_image(nodes)
+        nodes = split_nodes_link(nodes)
+        
+        if nodes == old_nodes:
+            break
+            
     return nodes
 
 def markdown_to_blocks(markdown):
